@@ -24,9 +24,15 @@ jobs:
         with:
           node-version: 20
 
-      - name: Expand source bundle
+      - name: Reassemble and verify source bundle
         shell: bash
-        run: tar -xzf .bootstrap/envsync.tar.gz -C .
+        run: |
+          cat .bootstrap/parts/part-* > /tmp/envsync.tar.gz.b64
+          base64 --decode /tmp/envsync.tar.gz.b64 > /tmp/envsync.tar.gz
+          echo "36df20ea831186c15030be6520b5029fe5a365380df24db67cb80ba11f7ed0f4  /tmp/envsync.tar.gz" | sha256sum --check
+          gzip --test /tmp/envsync.tar.gz
+          test "$(tar -tzf /tmp/envsync.tar.gz | wc -l | tr -d ' ')" = "140"
+          tar -xzf /tmp/envsync.tar.gz -C .
 
       - name: Generate deterministic lockfile
         shell: bash
