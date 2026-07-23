@@ -26,9 +26,7 @@ jobs:
 
       - name: Expand source bundle
         shell: bash
-        run: |
-          base64 --decode .bootstrap/envsync.tar.gz.b64 > /tmp/envsync.tar.gz
-          tar -xzf /tmp/envsync.tar.gz -C .
+        run: tar -xzf .bootstrap/envsync.tar.gz -C .
 
       - name: Generate deterministic lockfile
         shell: bash
