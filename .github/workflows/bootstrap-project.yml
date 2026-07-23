@@ -26,7 +26,9 @@ jobs:
 
       - name: Expand source bundle
         shell: bash
-        run: tar -xzf .bootstrap/envsync.tar.gz -C .
+        run: |
+          base64 --decode .bootstrap/envsync.tar.gz.b64 > /tmp/envsync.tar.gz
+          tar -xzf /tmp/envsync.tar.gz -C .
 
       - name: Generate deterministic lockfile
         shell: bash
@@ -48,7 +50,7 @@ jobs:
           git commit -m "docs: document EnvSync usage and limitations"
 
           git add .github/workflows/ci.yml .github/workflows/codeql.yml .github/workflows/dependency-review.yml
-          git rm -r .bootstrap .github/workflows/bootstrap-project.yml
+          git rm -r .bootstrap .bootstrap-trigger .github/workflows/bootstrap-project.yml
           git commit -m "ci: add cross-platform validation"
 
           git push origin HEAD:feat/envsync-v0.1.0
