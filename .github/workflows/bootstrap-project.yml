@@ -1,15 +1,16 @@
 name: Bootstrap EnvSync sources
 
 on:
-  push:
+  pull_request:
     branches: [main]
-    paths: [.bootstrap-trigger]
+    types: [opened, reopened]
 
 permissions:
   contents: write
 
 jobs:
   bootstrap:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'feat/envsync-v0.1.0'
     runs-on: ubuntu-latest
     steps:
       - name: Check out implementation branch
