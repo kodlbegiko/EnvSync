@@ -1,0 +1,62 @@
+name: Bootstrap EnvSync sources
+
+on:
+  push:
+    branches: [main]
+    paths: [.bootstrap-trigger]
+
+permissions:
+  contents: write
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out implementation branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/envsync-v0.1.0
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Expand source bundle
+        shell: bash
+        run: tar -xzf .bootstrap/envsync.tar.gz -C .
+
+      - name: Generate deterministic lockfile
+        shell: bash
+        run: npm install --package-lock-only --ignore-scripts
+
+      - name: Commit implementation in reviewable layers
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add package.json package-lock.json tsconfig.json tsup.config.ts vitest.config.ts eslint.config.js .prettierrc.json .gitignore .npmignore schema.json action.yml src
+          git commit -m "feat: implement EnvSync scanning and CLI"
+
+          git add tests scripts
+          git commit -m "test: add integration fixtures and package smoke tests"
+
+          git add README.md CHANGELOG.md CONTRIBUTING.md SECURITY.md CODE_OF_CONDUCT.md LICENSE docs
+          git commit -m "docs: document EnvSync usage and limitations"
+
+          git add .github/workflows/ci.yml .github/workflows/codeql.yml .github/workflows/dependency-review.yml
+          git rm -r .bootstrap .github/workflows/bootstrap-project.yml
+          git commit -m "ci: add cross-platform validation"
+
+          git push origin HEAD:feat/envsync-v0.1.0
+
+      - name: Run preliminary validation
+        shell: bash
+        run: |
+          npm ci
+          npm run lint
+          npm run typecheck
+          npm test
+          npm run build
